@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Loonstrook">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0e6656">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;-webkit-text-size-adjust:100%}img{max-width:100%}</style>
+</head>
+<body>
+<title>Loonstrookcheck GHZ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: één kolom-werkplek, tabbalk bovenaan; de prikklok is het enige uitgelichte object. */
+:root{
+  --paper:#f3f5f2; --surface:#ffffff; --ink:#18221e; --muted:#5a6862; --line:#d9e0db;
+  --accent:#0e6656; --accent-ink:#ffffff; --accent-soft:#dcefe9;
+  --ok:#1c7a3c; --ok-soft:#e1f2e6; --warn:#9a5a00; --warn-soft:#fbeed6; --bad:#b0281f; --bad-soft:#fbe3e1; --info:#2c5b97; --info-soft:#e3ecf8;
+  --p0:#e3e8e5; --p22:#f0cf7c; --p38:#e59a52; --p44:#c65a35; --p60:#7b3b8e;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#111815; --surface:#18211d; --ink:#e6ede9; --muted:#9aaba3; --line:#2c3833;
+  --accent:#4cc3a8; --accent-ink:#0b1512; --accent-soft:#1d3a33;
+  --ok:#6fd28e; --ok-soft:#173222; --warn:#f0b45a; --warn-soft:#3a2b12; --bad:#ff8a80; --bad-soft:#3d1c1a; --info:#8fb6ee; --info-soft:#1b2a3f;
+  --p0:#2a3530; --p22:#c9a94f; --p38:#d0843d; --p44:#d86a44; --p60:#b27ac4; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#111815; --surface:#18211d; --ink:#e6ede9; --muted:#9aaba3; --line:#2c3833;
+  --accent:#4cc3a8; --accent-ink:#0b1512; --accent-soft:#1d3a33;
+  --ok:#6fd28e; --ok-soft:#173222; --warn:#f0b45a; --warn-soft:#3a2b12; --bad:#ff8a80; --bad-soft:#3d1c1a; --info:#8fb6ee; --info-soft:#1b2a3f;
+  --p0:#2a3530; --p22:#c9a94f; --p38:#d0843d; --p44:#d86a44; --p60:#b27ac4; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:10px;padding-block:12px 4px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:1.35rem;margin:0;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:.85rem}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:0;scrollbar-width:none}
+nav.tabs button{font:inherit;font-weight:600;font-size:.9rem;background:none;border:0;color:var(--muted);padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:20px 60px}
+section.view{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+.panel,.klok,.verhaal{grid-template-columns:minmax(0,1fr)}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.25rem;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 6px;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--muted);font-weight:500;min-width:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:120px;font-family:var(--f-mono);font-size:.8rem}
+input[type=checkbox]{width:auto}
+.btn{font:inherit;font-weight:600;font-size:.9rem;border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.ghost{border-color:transparent;background:none;padding:6px 8px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* Prikklok */
+.klok{background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:22px;display:grid;gap:14px}
+.klok .status{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--muted)}
+.klok .status.on{color:var(--accent)}
+.klok .tijd{font-family:var(--f-mono);font-size:clamp(2.4rem,9vw,3.6rem);font-weight:600;letter-spacing:-.02em;line-height:1}
+.klok .knoppen{display:flex;gap:10px;flex-wrap:wrap}
+.klok .knoppen .btn{padding:14px 20px;font-size:1rem}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:6px;animation:puls 1.6s infinite}
+@keyframes puls{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{display:grid;gap:2px}
+.stat b{font-family:var(--f-mono);font-size:1.3rem;font-weight:600}
+.stat span{font-size:.8rem;color:var(--muted)}
+
+.dienst{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:12px 0;border-top:1px solid var(--line)}
+.dienst:first-child{border-top:0}
+.dienst .wat{min-width:0}
+.dienst .acties{display:flex;gap:4px;align-items:start}
+.balk{grid-column:1/-1;display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--p0)}
+.balk i{display:block;height:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--paper);border:1px solid var(--line);white-space:nowrap}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.p0{background:var(--p0)} .p22{background:var(--p22)} .p38{background:var(--p38)} .p44{background:var(--p44)} .p60{background:var(--p60)}
+
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right}
+.tablewrap{overflow-x:auto}
+
+.pill{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--info-soft);color:var(--info)}
+.check{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:14px 0;border-top:1px solid var(--line)}
+.check:first-of-type{border-top:0}
+.check .body{min-width:0;display:grid;gap:4px}
+
+.banner{border-radius:10px;padding:12px 14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.banner.info{background:var(--info-soft);color:var(--ink)}
+.banner.warn{background:var(--warn-soft);color:var(--ink)}
+
+.verhaal{display:grid;gap:14px;max-width:68ch}
+.verhaal h3{margin-top:6px}
+.verhaal .som{font-family:var(--f-mono);font-size:.88rem;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.verhaal ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.stap{display:grid;grid-template-columns:28px 1fr;gap:10px}
+.stap .n{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:.85rem}
+.stap > div{min-width:0}
+details summary{cursor:pointer;font-weight:600}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;display:grid;gap:8px;justify-items:center}
+.drop.hover{border-color:var(--accent);background:var(--accent-soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-weight:600;font-size:.9rem;z-index:20;max-width:calc(100% - 32px)}
+.ortstrip{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center}
+.ortstrip .bar{display:flex;height:22px;border-radius:5px;overflow:hidden}
+.ortstrip .bar i{display:grid;place-items:center;font-size:.68rem;font-weight:700;color:#18221e;font-style:normal;overflow:hidden}
+.ticks{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);font-family:var(--f-mono);grid-column:2}
+@media (max-width:520px){.ortstrip{grid-template-columns:1fr}.ticks{grid-column:1}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Loonstrookcheck</h1><span>CAO Gehandicaptenzorg · uren · ORT</span></div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="klok" id="tab-klok">Prikklok</button>
+      <button role="tab" data-tab="stroken" id="tab-stroken">Loonstroken</button>
+      <button role="tab" data-tab="controle" id="tab-controle">Controle</button>
+      <button role="tab" data-tab="uitleg" id="tab-uitleg">Uitleg</button>
+      <button role="tab" data-tab="inst" id="tab-inst">Instellingen</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banners" style="display:grid;gap:10px;margin-bottom:16px"></div>
+
+  <!-- PRIKKLOK -->
+  <section class="view" id="view-klok">
+    <div class="klok" id="klok"></div>
+
+    <div class="panel">
+      <div class="spread">
+        <h2>Gewerkte diensten</h2>
+        <label class="f" style="min-width:180px">Maand<input type="month" id="klok-maand"></label>
+      </div>
+      <div class="stats" id="maand-stats"></div>
+      <div id="dienst-lijst"></div>
+    </div>
+
+    <details class="panel" id="handmatig">
+      <summary id="handmatig-titel">Dienst handmatig toevoegen (vergeten te prikken?)</summary>
+      <div class="grid2">
+        <label class="f">Datum begin<input type="date" id="h-datum"></label>
+        <label class="f">Begintijd<input type="time" id="h-van"></label>
+        <label class="f">Eindtijd<input type="time" id="h-tot"></label>
+        <label class="f">Pauze (minuten)<input type="number" id="h-pauze" min="0" step="5" value="0"></label>
+        <label class="f">Notitie<input type="text" id="h-notitie" placeholder="bijv. invalbeurt, slaapdienst"></label>
+      </div>
+      <p class="small muted">Ligt de eindtijd vóór de begintijd? Dan reken ik de dienst door tot de volgende dag (nachtdienst).</p>
+      <div class="row">
+        <button class="btn primary" id="h-opslaan">Dienst opslaan</button>
+        <button class="btn" id="h-annuleer" hidden>Wijzigen annuleren</button>
+      </div>
+    </details>
+  </section>
+
+  <!-- LOONSTROKEN -->
+  <section class="view" id="view-stroken" hidden>
+    <div class="panel">
+      <h2>Loonstrook toevoegen</h2>
+      <div class="drop" id="drop">
+        <strong>Sleep je loonstrook (PDF) hierheen</strong>
+        <span class="small muted">of kies een bestand. Het bestand blijft op je eigen apparaat, ik lees alleen de tekst.</span>
+        <input type="file" id="pdf-input" accept="application/pdf,.pdf" style="max-width:320px">
+      </div>
+      <details>
+        <summary>Geen PDF? Plak de tekst van je loonstrook of vul alles zelf in</summary>
+        <div style="display:grid;gap:8px;margin-top:10px">
+          <textarea id="plak-tekst" placeholder="Plak hier de tekst van je loonstrook…"></textarea>
+          <div class="row"><button class="btn" id="plak-lees">Tekst uitlezen</button><button class="btn" id="leeg-form">Leeg formulier</button></div>
+        </div>
+      </details>
+      <p id="pdf-status" class="small muted"></p>
+    </div>
+
+    <div class="panel" id="strook-form" hidden>
+      <div class="spread"><h2 id="sf-titel">Controleer wat ik gevonden heb</h2><span class="pill warn">Nakijken</span></div>
+      <p class="small muted">Automatisch uitlezen gaat niet altijd goed, elke salarisadministratie heeft een ander formaat. Kijk de bedragen na met je loonstrook ernaast.</p>
+      <div class="grid2">
+        <label class="f">Maand van de loonstrook<input type="month" id="sf-maand"></label>
+        <label class="f">Maandsalaris (bruto) €<input type="text" inputmode="decimal" id="sf-salaris"></label>
+        <label class="f">Uurloon €<input type="text" inputmode="decimal" id="sf-uurloon"></label>
+        <label class="f">Contracturen per week<input type="text" inputmode="decimal" id="sf-contract"></label>
+        <label class="f">Vakantietoeslag € (mei)<input type="text" inputmode="decimal" id="sf-vt"></label>
+        <label class="f">Eindejaarsuitkering € (dec)<input type="text" inputmode="decimal" id="sf-eju"></label>
+        <label class="f">Bruto totaal €<input type="text" inputmode="decimal" id="sf-bruto"></label>
+        <label class="f">Netto uitbetaald €<input type="text" inputmode="decimal" id="sf-netto"></label>
+      </div>
+      <h3>ORT-regels op de loonstrook</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Omschrijving</th><th class="r">%</th><th class="r">Uren</th><th class="r">Bedrag €</th><th></th></tr></thead>
+        <tbody id="sf-ort"></tbody>
+      </table></div>
+      <div class="row"><button class="btn" id="sf-ort-plus">+ ORT-regel</button><span class="small muted" id="sf-ort-som"></span></div>
+      <details id="sf-ruw-wrap"><summary>Tekst die ik uit het bestand las</summary><textarea id="sf-ruw" readonly></textarea></details>
+      <div class="row"><button class="btn primary" id="sf-opslaan">Loonstrook opslaan en controleren</button><button class="btn" id="sf-sluit">Annuleren</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Opgeslagen loonstroken</h2>
+      <div id="stroken-lijst"></div>
+    </div>
+  </section>
+
+  <!-- CONTROLE -->
+  <section class="view" id="view-controle" hidden>
+    <div class="panel">
+      <div class="spread"><h2>Controle</h2><label class="f" style="min-width:220px">Loonstrook<select id="c-strook"></select></label></div>
+      <div id="c-samenvatting"></div>
+      <div id="c-checks"></div>
+    </div>
+    <div class="panel" id="c-ort-detail"></div>
+  </section>
+
+  <!-- UITLEG -->
+  <section class="view" id="view-uitleg" hidden>
+    <div class="panel">
+      <div class="spread"><h2>In gewone taal</h2><label class="f" style="min-width:220px">Loonstrook<select id="u-strook"></select></label></div>
+      <div class="verhaal" id="u-verhaal"></div>
+    </div>
+    <div class="panel" id="u-mail-wrap" hidden>
+      <h2>Er klopt iets niet. Wat nu?</h2>
+      <p>Stuur een berichtje naar de salarisadministratie of je leidinggevende. Hieronder staat een voorbeeld dat je kunt kopiëren en aanpassen.</p>
+      <textarea id="u-mail" style="min-height:220px;font-family:var(--f-body);font-size:.9rem"></textarea>
+      <div class="row"><button class="btn primary" id="u-mail-kopieer">Tekst kopiëren</button></div>
+    </div>
+    <div class="panel"><div class="verhaal" id="u-algemeen"></div></div>
+  </section>
+
+  <!-- INSTELLINGEN -->
+  <section class="view" id="view-inst" hidden>
+    <div class="panel">
+      <h2>Jouw contract</h2>
+      <div class="grid2">
+        <label class="f">Contracturen per week<input type="text" inputmode="decimal" id="i-contract"></label>
+        <label class="f">Maandsalaris bij jouw contract €<input type="text" inputmode="decimal" id="i-salaris"></label>
+        <label class="f">CAO-salaris fulltime (36 u) volgens jouw schaal en trede €<input type="text" inputmode="decimal" id="i-cao" placeholder="optioneel"></label>
+        <label class="f">Maximum uurloon voor ORT €<input type="text" inputmode="decimal" id="i-ortmax" placeholder="optioneel, zie CAO"></label>
+        <label class="f">Marge voordat ik alarm sla €<input type="text" inputmode="decimal" id="i-tol"></label>
+      </div>
+      <label class="row small"><input type="checkbox" id="i-later"> ORT wordt een maand later uitbetaald (meest gebruikelijk)</label>
+      <label class="row small"><input type="checkbox" id="i-5mei"> 5 mei telt dit jaar als feestdag</label>
+      <div class="row"><button class="btn primary" id="i-opslaan">Instellingen opslaan</button></div>
+    </div>
+
+    <div class="panel">
+      <div class="spread"><h2>ORT-tabel</h2><span class="pill warn">Controleer met de CAO</span></div>
+      <p class="small muted">Dit zijn startwaarden voor de CAO Gehandicaptenzorg, ingevuld op 22-11-2026 en nog niet regel voor regel gecontroleerd met de actuele CAO-tekst. Vergelijk ze met het ORT-artikel in jouw CAO (te vinden op vgn.nl of fnv.nl) en pas ze hier aan. Alle berekeningen gebruiken deze tabel.</p>
+      <div id="ort-strips" style="display:grid;gap:8px"></div>
+      <div id="ort-editor" style="display:grid;gap:16px"></div>
+      <div class="row"><button class="btn primary" id="ort-opslaan">ORT-tabel opslaan</button><button class="btn" id="ort-reset">Standaardwaarden terugzetten</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Je gegevens</h2>
+      <p class="small muted">Alles staat alleen in deze browser op dit apparaat. Wis je je browsergegevens, dan is het weg. Maak daarom af en toe een back-up: kopieer de tekst hieronder en bewaar hem, bijvoorbeeld in een notitie.</p>
+      <div class="row">
+        <button class="btn" id="d-export">Back-up maken</button>
+        <button class="btn" id="d-demo">Voorbeelddata wissen</button>
+        <button class="btn danger" id="d-wis">Alles wissen</button>
+      </div>
+      <textarea id="d-tekst" placeholder="Hier verschijnt je back-up. Of plak hier een back-up en kies 'Back-up terugzetten'."></textarea>
+      <div class="row">
+        <button class="btn" id="d-kopieer">Back-up kopiëren</button>
+        <button class="btn" id="d-import">Back-up terugzetten</button>
+        <label class="small muted">of bestand: <input type="file" id="d-file" accept=".json,application/json" style="width:auto"></label>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+// ---------- basis ----------
+const KEY = "loonstrookcheck.v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const euro = n => (n==null||isNaN(n)) ? "–" : n.toLocaleString("nl-NL",{style:"currency",currency:"EUR"});
+const getal = (n,d=2) => (n==null||isNaN(n)) ? "–" : n.toLocaleString("nl-NL",{minimumFractionDigits:d,maximumFractionDigits:d});
+const uren = min => getal(min/60,2) + " u";
+const r2 = n => Math.round(n*100)/100;
+const MAANDEN = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+const DAGEN = ["zo","ma","di","wo","do","vr","za"];
+const maandKey = d => d.getFullYear()+"-"+pad(d.getMonth()+1);
+const dagKey = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const maandNaam = k => { if(!k) return "?"; const [y,m]=k.split("-"); return MAANDEN[+m-1]+" "+y; };
+const vorigeMaand = k => { const [y,m]=k.split("-").map(Number); const d=new Date(y,m-2,1); return maandKey(d); };
+const tijd = d => pad(d.getHours())+":"+pad(d.getMinutes());
+const uid = () => Math.random().toString(36).slice(2,10);
+function parseNL(s){
+  if(s==null) return null; s=String(s).trim(); if(!s) return null;
+  let neg = /^-|-$/.test(s); s=s.replace(/[€\s-]/g,"");
+  if(s.includes(",")) s=s.replace(/\./g,"").replace(",",".");
+  const n=parseFloat(s); return isNaN(n)?null:(neg?-n:n);
+}
+const toInput = n => (n==null||isNaN(n)) ? "" : String(r2(n)).replace(".",",");
+
+const STANDAARD_ORT = {
+  wk:[{van:0,tot:6,pct:44},{van:6,tot:7,pct:22},{van:7,tot:20,pct:0},{van:20,tot:22,pct:22},{van:22,tot:24,pct:44}],
+  za:[{van:0,tot:6,pct:44},{van:6,tot:22,pct:38},{van:22,tot:24,pct:44}],
+  zo:[{van:0,tot:24,pct:60}]
+};
+const DAGTYPE_NAAM = {wk:"Maandag t/m vrijdag", za:"Zaterdag", zo:"Zondag en feestdag"};
+const DAGTYPE_KORT = {wk:"doordeweeks", za:"zaterdag", zo:"zondag/feestdag"};
+const STANDAARD_INST = {contracturen:24, salaris:null, caoFulltime:null, ortMax:null, tolerantie:1, ortLater:true, vijfMei:false, ortTabel:JSON.parse(JSON.stringify(STANDAARD_ORT))};
+
+let opslagOk = true;
+function laad(){ try{ const s=localStorage.getItem(KEY); return s?JSON.parse(s):null; }catch(e){ opslagOk=false; return null; } }
+function bewaar(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); opslagOk=true; }catch(e){ opslagOk=false; } renderBanners(); }
+
+// ---------- feestdagen ----------
+const fdCache = {};
+function pasen(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da);}
+function feestdagen(y){
+  const sleutel = y+"|"+state.inst.vijfMei; if(fdCache[sleutel]) return fdCache[sleutel];
+  const p=pasen(y), plus=n=>{const d=new Date(p);d.setDate(d.getDate()+n);return d;};
+  const kd = new Date(y,3,27); if(kd.getDay()===0) kd.setDate(26);
+  const lijst = [[new Date(y,0,1),"Nieuwjaarsdag"],[p,"Eerste paasdag"],[plus(1),"Tweede paasdag"],[kd,"Koningsdag"],[plus(39),"Hemelvaartsdag"],[plus(49),"Eerste pinksterdag"],[plus(50),"Tweede pinksterdag"],[new Date(y,11,25),"Eerste kerstdag"],[new Date(y,11,26),"Tweede kerstdag"]];
+  if(state.inst.vijfMei) lijst.push([new Date(y,4,5),"Bevrijdingsdag"]);
+  const m={}; lijst.forEach(([d,n])=>m[dagKey(d)]=n); fdCache[sleutel]=m; return m;
+}
+function dagType(d){ if(feestdagen(d.getFullYear())[dagKey(d)]) return "zo"; const w=d.getDay(); return w===0?"zo":w===6?"za":"wk"; }
+function band(dt, minuut){ const t=state.inst.ortTabel[dt]||[]; for(let i=0;i<t.length;i++){ if(minuut>=t[i].van*60 && minuut<t[i].tot*60) return i; } return -1; }
+const uurTxt = h => pad(Math.floor(h))+":"+pad(Math.round((h%1)*60));
+function bandLabel(dt,i){ const b=state.inst.ortTabel[dt][i]; return DAGTYPE_KORT[dt]+" "+uurTxt(b.van)+"–"+uurTxt(b.tot); }
+const kleur = p => p<=0?"p0":p<30?"p22":p<41?"p38":p<50?"p44":"p60";
+
+// ---------- rekenkern ----------
+// Rekent een dienst minuut voor minuut door; pauze wordt naar verhouding over de tijdvakken verdeeld.
+function rekenDienst(d){
+  const s=new Date(d.start), e=new Date(d.eind);
+  const totaal=Math.max(0,Math.round((e-s)/60000));
+  const fac = totaal>0 ? Math.max(0,totaal-(+d.pauzeMin||0))/totaal : 0;
+  const perMaand={}, segmenten=[]; let feest=null;
+  for(let i=0;i<totaal;i++){
+    const t=new Date(s.getTime()+i*60000), mk=maandKey(t), dt=dagType(t), bi=band(dt,t.getHours()*60+t.getMinutes());
+    const pct = bi<0?0:state.inst.ortTabel[dt][bi].pct;
+    const fd=feestdagen(t.getFullYear())[dagKey(t)]; if(fd) feest=fd;
+    const M = perMaand[mk] || (perMaand[mk]={min:0,perPct:{},perBand:{}});
+    M.min+=fac; M.perPct[pct]=(M.perPct[pct]||0)+fac;
+    const bk=dt+"|"+bi; M.perBand[bk]=(M.perBand[bk]||0)+fac;
+    const last=segmenten[segmenten.length-1]; if(last&&last.pct===pct) last.n++; else segmenten.push({pct,n:1});
+  }
+  return {totaal, netto:totaal*fac, perMaand, segmenten, feest};
+}
+function analyse(){
+  const res={};
+  state.diensten.forEach(d=>{ const r=rekenDienst(d); for(const mk in r.perMaand){ const A=res[mk]||(res[mk]={min:0,perPct:{},perBand:{},n:0}); const M=r.perMaand[mk]; A.min+=M.min; A.n++; for(const p in M.perPct) A.perPct[p]=(A.perPct[p]||0)+M.perPct[p]; for(const b in M.perBand) A.perBand[b]=(A.perBand[b]||0)+M.perBand[b]; } });
+  return res;
+}
+const contractUurloon = (sal,cu) => (sal&&cu) ? sal*3/13/cu : null;   // maandsalaris x 3/13 = weekloon; gedeeld door weekuren
+function ortUurloonVan(st){ const basis = st.uurloon || contractUurloon(st.salaris||state.inst.salaris, st.contracturen||state.inst.contracturen); if(basis==null) return {basis:null,ort:null,gemaximeerd:false}; const max=state.inst.ortMax; return {basis, ort: (max && basis>max)?max:basis, gemaximeerd: !!(max && basis>max)}; }
+function verwachteOrt(A, ul){
+  const regels=[]; let tot=0;
+  Object.keys(A.perBand).forEach(k=>{ const [dt,bi]=k.split("|"); const i=+bi; if(i<0) return; const b=state.inst.ortTabel[dt][i]; if(!b||!b.pct) return; const u=A.perBand[k]/60; const bedrag=u*ul*b.pct/100; tot+=bedrag; regels.push({dt,i,label:bandLabel(dt,i),pct:b.pct,uren:u,bedrag}); });
+  const volg={wk:0,za:1,zo:2}; regels.sort((a,b)=>volg[a.dt]-volg[b.dt]||a.i-b.i);
+  return {regels,totaal:r2(tot)};
+}
+
+// ---------- controles ----------
+function controleer(st){
+  const A=analyse(), inst=state.inst, tol=inst.tolerantie||1, checks=[];
+  const bron = inst.ortLater ? vorigeMaand(st.maand) : st.maand;
+  const ul = ortUurloonVan(st);
+  const strookOrt = st.ortRegels.length ? r2(st.ortRegels.reduce((s,r)=>s+(r.bedrag||0),0)) : 0;
+  const Ab = A[bron];
+  // 1. ORT
+  if(!Ab){
+    checks.push({id:"ort",titel:"ORT (toeslag onregelmatige uren)",status:"info",kort:`Ik heb geen gewerkte uren van ${maandNaam(bron)} in de prikklok. Daardoor kan ik de ORT niet narekenen.`,bron,strookOrt});
+  } else if(ul.ort==null){
+    checks.push({id:"ort",titel:"ORT (toeslag onregelmatige uren)",status:"info",kort:"Ik weet je uurloon niet. Vul het uurloon of je salaris en contracturen in.",bron,strookOrt});
+  } else {
+    const v=verwachteOrt(Ab, ul.ort), verschil=r2(strookOrt-v.totaal);
+    const status = Math.abs(verschil)<=tol ? "ok" : verschil<0 ? "bad" : "warn";
+    const kort = status==="ok" ? `Klopt. Verwacht ${euro(v.totaal)}, op je loonstrook ${euro(strookOrt)}.`
+      : status==="bad" ? `Je krijgt ${euro(-verschil)} te weinig ORT. Verwacht ${euro(v.totaal)}, op je loonstrook ${euro(strookOrt)}.`
+      : `Je krijgt ${euro(verschil)} meer ORT dan ik verwacht. Verwacht ${euro(v.totaal)}, op je loonstrook ${euro(strookOrt)}.`;
+    // uren per percentage vergelijken als de loonstrook die noemt
+    const urenVerschil=[];
+    if(st.ortRegels.some(r=>r.pct&&r.uren)){
+      const strookPct={}; st.ortRegels.forEach(r=>{ if(r.pct) strookPct[r.pct]=(strookPct[r.pct]||0)+(r.uren||0); });
+      const mijnPct={}; v.regels.forEach(r=>mijnPct[r.pct]=(mijnPct[r.pct]||0)+r.uren);
+      new Set([...Object.keys(strookPct),...Object.keys(mijnPct)]).forEach(p=>{ const a=mijnPct[p]||0,b=strookPct[p]||0; if(Math.abs(a-b)>0.1) urenVerschil.push({pct:+p,mijn:a,strook:b}); });
+    }
+    checks.push({id:"ort",titel:"ORT (toeslag onregelmatige uren)",status,kort,bron,strookOrt,verwacht:v,verschil,ul,urenVerschil});
+  }
+  // 2. uurloon
+  const cu = st.contracturen||inst.contracturen, sal = st.salaris||inst.salaris;
+  const berekend = contractUurloon(sal,cu);
+  if(st.uurloon && berekend){
+    const d=r2(st.uurloon-berekend);
+    checks.push({id:"uurloon",titel:"Uurloon",status:Math.abs(d)<=0.05?"ok":"warn",kort:Math.abs(d)<=0.05?`Klopt: ${euro(st.uurloon)} per uur.`:`Op je loonstrook ${euro(st.uurloon)}, ik reken ${euro(berekend)}. Verschil ${euro(d)} per uur.`,sal,cu,berekend,strook:st.uurloon,verschil:d});
+  } else {
+    checks.push({id:"uurloon",titel:"Uurloon",status:"info",kort:berekend?`Ik reken met ${euro(berekend)} per uur (uit salaris en contracturen).`:"Niet te controleren: salaris of contracturen ontbreekt.",sal,cu,berekend});
+  }
+  // 3. salaris tegen CAO-schaal
+  if(inst.caoFulltime && st.salaris){
+    const verwacht=r2(inst.caoFulltime*cu/36), d=r2(st.salaris-verwacht);
+    checks.push({id:"salaris",titel:"Salaris volgens je CAO-schaal",status:Math.abs(d)<=tol?"ok":d<0?"bad":"warn",kort:Math.abs(d)<=tol?`Klopt: ${euro(st.salaris)} hoort bij ${getal(cu,1)} uur per week.`:`Verwacht ${euro(verwacht)} voor ${getal(cu,1)} uur, op je loonstrook ${euro(st.salaris)}.`,verwacht,strook:st.salaris,verschil:d,cu});
+  }
+  // 4. gewerkte uren tegen contract
+  const Am = A[st.maand], gewerkt = Am?Am.min/60:0, contractMaand = cu? cu*52/12 : null;
+  if(Am && contractMaand){
+    const d=gewerkt-contractMaand;
+    checks.push({id:"uren",titel:"Gewerkte uren tegenover je contract",status:"info",kort:`In ${maandNaam(st.maand)} werkte je ${getal(gewerkt)} uur. Gemiddeld hoort bij je contract ${getal(contractMaand)} uur per maand (${d>=0?"+":""}${getal(d)} uur).`,gewerkt,contractMaand,verschil:d});
+  }
+  // 5. vakantietoeslag / eindejaarsuitkering
+  const mnd=+st.maand.split("-")[1];
+  if(mnd===5 && sal){ const v=r2(sal*12*0.08); checks.push({id:"vt",titel:"Vakantietoeslag (8%)",status:st.vakantietoeslag==null?"warn":Math.abs(st.vakantietoeslag-v)<=v*0.03?"ok":"warn",kort:st.vakantietoeslag==null?`In mei hoort vakantietoeslag te staan. Ik schat ongeveer ${euro(v)}.`:`Op je loonstrook ${euro(st.vakantietoeslag)}, mijn schatting ${euro(v)}.`,verwacht:v,strook:st.vakantietoeslag,sal}); }
+  if(mnd===12 && sal){ const v=r2(sal*12*0.0833); checks.push({id:"eju",titel:"Eindejaarsuitkering (8,33%)",status:st.eju==null?"warn":Math.abs(st.eju-v)<=v*0.03?"ok":"warn",kort:st.eju==null?`In december hoort de eindejaarsuitkering te staan. Ik schat ongeveer ${euro(v)}.`:`Op je loonstrook ${euro(st.eju)}, mijn schatting ${euro(v)}.`,verwacht:v,strook:st.eju,sal}); }
+  return checks;
+}
+const STATUS = {ok:["ok","Klopt"],warn:["warn","Let op"],bad:["bad","Fout"],info:["info","Info"]};
+const pill = s => `<span class="pill ${STATUS[s][0]}">${STATUS[s][1]}</span>`;
+
+// ---------- state ----------
+let state = laad();
+if(!state){ state = {inst:JSON.parse(JSON.stringify(STANDAARD_INST)), diensten:[], stroken:[], lopend:null, ui:{tab:"klok"}}; seedVoorbeeld(); bewaar(); }
+state.inst = Object.assign(JSON.parse(JSON.stringify(STANDAARD_INST)), state.inst||{});
+state.ui = state.ui||{tab:"klok"}; state.diensten=state.diensten||[]; state.stroken=state.stroken||[];
+
+function seedVoorbeeld(){
+  const nu=new Date(), bron=new Date(nu.getFullYear(),nu.getMonth()-1,1), y=bron.getFullYear(), m=bron.getMonth();
+  state.inst.salaris=2450; state.inst.contracturen=24;
+  const patroon=[[2,"vroeg"],[3,"laat"],[6,"laat"],[7,"weekend"],[8,"zondag"],[10,"nacht"],[13,"vroeg"],[15,"laat"],[17,"weekend"],[20,"laat"],[22,"nacht"],[24,"weekend"],[25,"zondag"],[28,"vroeg"]];
+  const t={vroeg:[7,0,15,0,30],laat:[15,0,23,0,30],weekend:[7,30,15,30,30],zondag:[8,0,16,0,30],nacht:[23,0,7,30,0]};
+  patroon.forEach(([dag,soort])=>{ const s=new Date(y,m,dag); if(s.getMonth()!==m) return; let [h1,m1,h2,m2,p]=t[soort];
+    if(soort==="weekend"){ while(s.getDay()!==6) s.setDate(s.getDate()+1); }
+    if(soort==="zondag"){ while(s.getDay()!==0) s.setDate(s.getDate()+1); }
+    if(s.getMonth()!==m) return;
+    const st=new Date(s); st.setHours(h1,m1,0,0); const e=new Date(s); e.setHours(h2,m2,0,0); if(e<=st) e.setDate(e.getDate()+1);
+    state.diensten.push({id:uid(),start:st.toISOString(),eind:e.toISOString(),pauzeMin:p,notitie:"",demo:true}); });
+  // Voorbeeldloonstrook: zondaguren deels vergeten, zodat je ziet hoe een fout eruitziet
+  const A=analyse(), mk=maandKey(bron), ul=contractUurloon(2450,24), v=verwachteOrt(A[mk]||{perBand:{}}, ul), perPct={};
+  v.regels.forEach(r=>{ perPct[r.pct]=(perPct[r.pct]||0)+r.uren; });
+  if(perPct[60]) perPct[60]=Math.max(0,perPct[60]-7.5);
+  const regels=Object.keys(perPct).map(p=>({omschrijving:"ORT "+p+"% "+maandNaam(mk),pct:+p,uren:r2(perPct[p]),bedrag:r2(perPct[p]*ul*p/100)}));
+  state.stroken.push({id:uid(),maand:maandKey(nu),salaris:2450,uurloon:r2(ul),contracturen:24,ortRegels:regels,bruto:null,netto:null,vakantietoeslag:null,eju:null,bestand:"voorbeeld-loonstrook.pdf",ruw:"",demo:true});
+  state.ui.strookId=state.stroken[0].id;
+}
+
+// ---------- UI algemeen ----------
+function toast(t){ const el=document.createElement("div"); el.className="toast"; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2600); }
+function toonTab(tab){ state.ui.tab=tab; document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===tab?"true":"false")); document.querySelectorAll("section.view").forEach(s=>s.hidden = s.id!=="view-"+tab); bewaar(); renderTab(tab); window.scrollTo(0,0); }
+$("#tabs").addEventListener("click",e=>{ const b=e.target.closest("button[data-tab]"); if(b) toonTab(b.dataset.tab); });
+function renderTab(t){ ({klok:renderKlokView,stroken:renderStroken,controle:renderControle,uitleg:renderUitleg,inst:renderInst})[t](); }
+function renderBanners(){
+  const b=[]; if(!opslagOk) b.push(`<div class="banner warn"><span>Opslaan lukt niet in deze browser (privévenster?). Maak een back-up via Instellingen voordat je de pagina sluit.</span></div>`);
+  if(state.diensten.some(d=>d.demo)||state.stroken.some(s=>s.demo)) b.push(`<div class="banner info"><span>Je ziet <b>voorbeelddata</b> zodat je kunt zien hoe het werkt. Dit zijn niet jouw uren of jouw loonstrook.</span><button class="btn" data-act="wis-demo">Voorbeelddata wissen</button></div>`);
+  $("#banners").innerHTML=b.join("");
+}
+document.addEventListener("click",e=>{ if(e.target.closest("[data-act='wis-demo']")) wisDemo(); });
+function wisDemo(){ state.diensten=state.diensten.filter(d=>!d.demo); state.stroken=state.stroken.filter(s=>!s.demo); state.ui.strookId=state.stroken[0]?.id; bewaar(); renderTab(state.ui.tab); toast("Voorbeelddata gewist"); }
+
+// ---------- PRIKKLOK ----------
+function lopendeDuur(){ const L=state.lopend; if(!L) return {werk:0,pauze:0,inPauze:false}; const nu=Date.now(); let p=0, inP=false; L.pauzes.forEach(x=>{ const e=x.eind?new Date(x.eind).getTime():nu; if(!x.eind) inP=true; p+=e-new Date(x.start).getTime(); }); return {werk:nu-new Date(L.start).getTime()-p, pauze:p, inPauze:inP}; }
+const hms = ms => { const s=Math.max(0,Math.floor(ms/1000)); return pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60); };
+function toLocalInput(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+tijd(d); }
+function renderKlok(){
+  const L=state.lopend, k=$("#klok");
+  if(!L){
+    k.innerHTML=`<div class="status">Niet aan het werk</div><div class="tijd">${tijd(new Date())}</div>
+      <p class="muted">Druk op <b>Start dienst</b> als je begint. Als je naar huis gaat, druk je op <b>Stop dienst</b>. Ik reken daarna zelf uit hoeveel ORT-uren erin zitten.</p>
+      <div class="knoppen"><button class="btn primary" id="k-start">Start dienst</button></div>`;
+  } else {
+    const d=lopendeDuur(), s=new Date(L.start);
+    k.innerHTML=`<div class="status on"><span class="dot"></span>${d.inPauze?"Pauze":"Aan het werk"} sinds ${DAGEN[s.getDay()]} ${s.getDate()} ${MAANDEN[s.getMonth()]} ${tijd(s)}</div>
+      <div class="tijd" id="k-teller">${hms(d.werk)}</div>
+      <p class="muted small" id="k-pauze">Pauze tot nu toe: ${Math.round(d.pauze/60000)} min</p>
+      <div class="knoppen"><button class="btn primary" id="k-stop">Stop dienst</button><button class="btn" id="k-pauze-btn">${d.inPauze?"Pauze stoppen":"Pauze starten"}</button></div>
+      <details><summary class="small">Te laat ingeprikt? Begintijd aanpassen</summary><div class="row" style="margin-top:8px"><input type="datetime-local" id="k-begin" value="${toLocalInput(s)}" style="max-width:240px"><button class="btn" id="k-begin-ok">Aanpassen</button><button class="btn danger" id="k-annuleer">Dienst weggooien</button></div></details>`;
+  }
+}
+setInterval(()=>{ if(state.lopend && state.ui.tab==="klok"){ const d=lopendeDuur(), t=$("#k-teller"), p=$("#k-pauze"); if(t) t.textContent=hms(d.werk); if(p) p.textContent="Pauze tot nu toe: "+Math.round(d.pauze/60000)+" min"; } else if(!state.lopend && state.ui.tab==="klok"){ const t=$("#klok .tijd"); if(t) t.textContent=tijd(new Date()); } },1000);
+let annuleerKlik=0;
+$("#klok").addEventListener("click",e=>{
+  const id=e.target.id;
+  if(id==="k-start"){ state.lopend={start:new Date().toISOString(),pauzes:[]}; bewaar(); renderKlok(); toast("Dienst gestart. Fijne dienst!"); }
+  if(id==="k-pauze-btn"){ const P=state.lopend.pauzes, l=P[P.length-1]; if(l&&!l.eind) l.eind=new Date().toISOString(); else P.push({start:new Date().toISOString()}); bewaar(); renderKlok(); }
+  if(id==="k-stop"){ const L=state.lopend, nu=new Date().toISOString(); L.pauzes.forEach(p=>{ if(!p.eind) p.eind=nu; }); const pz=Math.round(L.pauzes.reduce((s,p)=>s+(new Date(p.eind)-new Date(p.start)),0)/60000);
+    state.diensten.push({id:uid(),start:L.start,eind:nu,pauzeMin:pz,notitie:""}); state.lopend=null; bewaar(); $("#klok-maand").value=maandKey(new Date(nu)); renderKlokView(); toast("Dienst opgeslagen. Wel thuis!"); }
+  if(id==="k-begin-ok"){ const v=$("#k-begin").value; if(v){ state.lopend.start=new Date(v).toISOString(); bewaar(); renderKlok(); toast("Begintijd aangepast"); } }
+  if(id==="k-annuleer"){ if(Date.now()-annuleerKlik<3000){ state.lopend=null; bewaar(); renderKlok(); toast("Dienst weggegooid"); } else { annuleerKlik=Date.now(); e.target.textContent="Zeker weten? Klik nog eens"; } }
+});
+function renderKlokView(){
+  renderKlok();
+  const mi=$("#klok-maand"); if(!mi.value) mi.value = state.diensten.length ? maandKey(new Date(state.diensten.slice().sort((a,b)=>b.start.localeCompare(a.start))[0].start)) : maandKey(new Date());
+  const mk=mi.value, A=analyse()[mk];
+  const lijst=state.diensten.filter(d=>maandKey(new Date(d.start))===mk).sort((a,b)=>a.start.localeCompare(b.start));
+  const ul=contractUurloon(state.inst.salaris,state.inst.contracturen), ulOrt = (state.inst.ortMax&&ul>state.inst.ortMax)?state.inst.ortMax:ul;
+  const v = A&&ulOrt ? verwachteOrt(A,ulOrt) : null;
+  const ortUren = A ? Object.keys(A.perPct).filter(p=>+p>0).reduce((s,p)=>s+A.perPct[p],0) : 0;
+  $("#maand-stats").innerHTML = `<div class="stat"><b>${A?getal(A.min/60):"0,00"}</b><span>uren gewerkt</span></div>
+    <div class="stat"><b>${getal(ortUren/60)}</b><span>uren met ORT</span></div>
+    <div class="stat"><b>${v?euro(v.totaal):"–"}</b><span>verwachte ORT${state.inst.ortLater?" (op strook van "+maandNaam(maandKey(new Date(+mk.slice(0,4),+mk.slice(5)-0,1)))+")":""}</span></div>
+    <div class="stat"><b>${lijst.length}</b><span>diensten</span></div>`;
+  $("#dienst-lijst").innerHTML = lijst.length ? lijst.map(d=>{ const r=rekenDienst(d), s=new Date(d.start), e=new Date(d.eind), pp={};
+      r.segmenten.forEach(x=>pp[x.pct]=(pp[x.pct]||0)+x.n);
+      const tot=r.segmenten.reduce((a,x)=>a+x.n,0)||1;
+      return `<div class="dienst"><div class="wat"><b>${DAGEN[s.getDay()]} ${s.getDate()} ${MAANDEN[s.getMonth()].slice(0,3)}</b> <span class="num">${tijd(s)}–${tijd(e)}</span> <span class="muted small">· ${getal(r.netto/60)} u · pauze ${d.pauzeMin||0} min${r.feest?" · "+esc(r.feest):""}${d.notitie?" · "+esc(d.notitie):""}${d.demo?" · voorbeeld":""}</span>
+        <div class="chips" style="margin-top:4px">${Object.keys(pp).filter(p=>+p>0).map(p=>`<span class="chip"><span class="sw ${kleur(+p)}"></span>${getal(pp[p]/60,1)} u · ${p}%</span>`).join("")||'<span class="chip">geen ORT</span>'}</div></div>
+        <div class="acties"><button class="btn ghost" data-edit="${d.id}">Wijzig</button><button class="btn ghost danger" data-del="${d.id}">Verwijder</button></div>
+        <div class="balk" title="Verloop van de dienst: kleur = ORT-percentage">${r.segmenten.map(x=>`<i class="${kleur(x.pct)}" style="width:${x.n/tot*100}%"></i>`).join("")}</div></div>`; }).join("")
+    : `<p class="muted">Nog geen diensten in ${maandNaam(mk)}. Druk bovenaan op <b>Start dienst</b> als je gaat werken, of voeg een dienst handmatig toe.</p>`;
+}
+$("#klok-maand").addEventListener("change",renderKlokView);
+let bewerkId=null, delKlik={id:null,t:0};
+$("#dienst-lijst").addEventListener("click",e=>{
+  const ed=e.target.closest("[data-edit]"), del=e.target.closest("[data-del]");
+  if(ed){ const d=state.diensten.find(x=>x.id===ed.dataset.edit); const s=new Date(d.start), en=new Date(d.eind); bewerkId=d.id;
+    $("#h-datum").value=dagKey(s); $("#h-van").value=tijd(s); $("#h-tot").value=tijd(en); $("#h-pauze").value=d.pauzeMin||0; $("#h-notitie").value=d.notitie||"";
+    $("#handmatig").open=true; $("#handmatig-titel").textContent="Dienst wijzigen"; $("#h-annuleer").hidden=false; $("#handmatig").scrollIntoView({behavior:"smooth"}); }
+  if(del){ const id=del.dataset.del; if(delKlik.id===id && Date.now()-delKlik.t<3000){ state.diensten=state.diensten.filter(x=>x.id!==id); bewaar(); renderKlokView(); toast("Dienst verwijderd"); } else { delKlik={id,t:Date.now()}; del.textContent="Zeker?"; } }
+});
+function resetHandmatig(){ bewerkId=null; $("#handmatig-titel").textContent="Dienst handmatig toevoegen (vergeten te prikken?)"; $("#h-annuleer").hidden=true; ["#h-van","#h-tot","#h-notitie"].forEach(s=>$(s).value=""); $("#h-pauze").value=0; }
+$("#h-annuleer").addEventListener("click",resetHandmatig);
+$("#h-opslaan").addEventListener("click",()=>{
+  const dat=$("#h-datum").value, van=$("#h-van").value, tot=$("#h-tot").value;
+  if(!dat||!van||!tot){ toast("Vul datum, begintijd en eindtijd in"); return; }
+  const s=new Date(dat+"T"+van), e=new Date(dat+"T"+tot); if(e<=s) e.setDate(e.getDate()+1);
+  const obj={start:s.toISOString(),eind:e.toISOString(),pauzeMin:Math.max(0,+$("#h-pauze").value||0),notitie:$("#h-notitie").value.trim()};
+  if(bewerkId){ Object.assign(state.diensten.find(x=>x.id===bewerkId),obj,{demo:false}); toast("Dienst gewijzigd"); } else { state.diensten.push(Object.assign({id:uid()},obj)); toast("Dienst toegevoegd"); }
+  bewaar(); $("#klok-maand").value=maandKey(s); resetHandmatig(); renderKlokView();
+});
+
+// ---------- LOONSTROKEN ----------
+let pdfKlaar=null;
+function laadPdfJs(){
+  if(pdfKlaar) return pdfKlaar;
+  const base="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  const script=src=>new Promise((ok,nok)=>{ const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=()=>nok(new Error("laden mislukt")); document.head.appendChild(s); });
+  pdfKlaar = script(base+"pdf.min.js").then(()=>script(base+"pdf.worker.min.js")).then(()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc=base+"pdf.worker.min.js"; return window.pdfjsLib; });
+  pdfKlaar.catch(()=>{ pdfKlaar=null; });
+  return pdfKlaar;
+}
+async function pdfNaarTekst(file){
+  const lib=await laadPdfJs(); const buf=await file.arrayBuffer(); const doc=await lib.getDocument({data:buf}).promise; const regels=[];
+  for(let p=1;p<=doc.numPages;p++){ const pg=await doc.getPage(p); const tc=await pg.getTextContent(); const items=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str,x:i.transform[4],y:i.transform[5]}));
+    items.sort((a,b)=>b.y-a.y||a.x-b.x); let cur=[], y=null;
+    items.forEach(i=>{ if(y===null||Math.abs(i.y-y)<=3){ cur.push(i); y=y===null?i.y:y; } else { regels.push(cur.sort((a,b)=>a.x-b.x).map(c=>c.s).join(" ")); cur=[i]; y=i.y; } });
+    if(cur.length) regels.push(cur.sort((a,b)=>a.x-b.x).map(c=>c.s).join(" ")); }
+  return regels.join("\n");
+}
+function leesStrook(txt){
+  const regels=txt.split(/\r?\n/).map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean);
+  const amtRe=/-?\d{1,3}(?:\.\d{3})+,\d{2}-?|-?\d+,\d{2}-?/g; const bedr=l=>(l.match(amtRe)||[]).map(parseNL);
+  const r={maand:null,salaris:null,uurloon:null,contracturen:null,ortRegels:[],bruto:null,netto:null,vakantietoeslag:null,eju:null};
+  const mm=txt.match(new RegExp("("+MAANDEN.join("|")+")\\s+(20\\d{2})","i"));
+  if(mm) r.maand=mm[2]+"-"+pad(MAANDEN.indexOf(mm[1].toLowerCase())+1);
+  else { const pm=txt.match(/periode\s*:?\s*(\d{1,2})\D{1,12}(20\d{2})/i); if(pm&&+pm[1]>=1&&+pm[1]<=12) r.maand=pm[2]+"-"+pad(+pm[1]); }
+  regels.forEach(L=>{ const l=L.toLowerCase(), n=bedr(L); if(!n.length && !/%/.test(l)) return;
+    if(/\b(ort|onregelmatig|onr\.?\s*dienst|toeslag onregelm)/.test(l)){ const pm=l.match(/(\d{1,2})(?:[,.]\d+)?\s*%/); const pct=pm?+pm[1]:null; const bedrag=n.length?n[n.length-1]:null; const u=n.length>=2?n.find(x=>x!==bedrag&&x!==pct&&x>0&&x<400):null; if(bedrag!=null) r.ortRegels.push({omschrijving:L.slice(0,60),pct,uren:u??null,bedrag}); return; }
+    if(/uurloon/.test(l)&&r.uurloon==null){ r.uurloon=n.find(x=>x>5&&x<200)??null; return; }
+    if(/vakantietoeslag|vakantiegeld/.test(l)&&r.vakantietoeslag==null){ r.vakantietoeslag=n[0]??null; return; }
+    if(/eindejaars/.test(l)&&r.eju==null){ r.eju=n[0]??null; return; }
+    if(/(salaris|basisloon|maandloon)/.test(l)&&!/(cumul|totaal|jaar)/.test(l)&&r.salaris==null){ r.salaris=n.find(x=>x>=300)??null; return; }
+    if(/(deeltijd|parttime|uren per week|arbeidsduur|contracturen|uur p\/w)/.test(l)&&r.contracturen==null){ r.contracturen=n.find(x=>x>0&&x<=40)??null; return; }
+    if(/netto|uit te betalen|te betalen/.test(l)&&r.netto==null){ r.netto=n[0]??null; return; }
+    if(/bruto/.test(l)&&r.bruto==null){ r.bruto=n[0]??null; }
+  });
+  return r;
+}
+let concept=null;
+function toonForm(c,ruw,bestand){
+  concept={id:c.id||null,bestand:bestand||c.bestand||"",ruw:ruw??c.ruw??"",ortRegels:(c.ortRegels||[]).map(x=>Object.assign({},x))};
+  $("#sf-maand").value=c.maand||maandKey(new Date());
+  $("#sf-salaris").value=toInput(c.salaris??state.inst.salaris); $("#sf-uurloon").value=toInput(c.uurloon); $("#sf-contract").value=toInput(c.contracturen??state.inst.contracturen);
+  $("#sf-vt").value=toInput(c.vakantietoeslag); $("#sf-eju").value=toInput(c.eju); $("#sf-bruto").value=toInput(c.bruto); $("#sf-netto").value=toInput(c.netto);
+  $("#sf-ruw").value=concept.ruw; $("#sf-ruw-wrap").hidden=!concept.ruw; $("#sf-titel").textContent=c.id?"Loonstrook wijzigen":"Controleer wat ik gevonden heb";
+  renderOrtRegels(); $("#strook-form").hidden=false; $("#strook-form").scrollIntoView({behavior:"smooth"});
+}
+function renderOrtRegels(){
+  $("#sf-ort").innerHTML=concept.ortRegels.map((r,i)=>`<tr><td><input id="or-o-${i}" data-i="${i}" data-k="omschrijving" value="${esc(r.omschrijving)}"></td><td class="r"><input id="or-p-${i}" data-i="${i}" data-k="pct" inputmode="decimal" value="${toInput(r.pct)}" style="width:70px"></td><td class="r"><input id="or-u-${i}" data-i="${i}" data-k="uren" inputmode="decimal" value="${toInput(r.uren)}" style="width:80px"></td><td class="r"><input id="or-b-${i}" data-i="${i}" data-k="bedrag" inputmode="decimal" value="${toInput(r.bedrag)}" style="width:100px"></td><td><button class="btn ghost danger" data-weg="${i}" aria-label="Regel verwijderen">×</button></td></tr>`).join("") || `<tr><td colspan="5" class="muted">Geen ORT-regels gevonden. Staat er wel ORT op je loonstrook? Voeg de regel dan toe.</td></tr>`;
+  ortSom();
+}
+function ortSom(){ $("#sf-ort-som").textContent="Totaal ORT: "+euro(r2(concept.ortRegels.reduce((s,r)=>s+(r.bedrag||0),0))); }
+$("#sf-ort").addEventListener("input",e=>{ const t=e.target; if(t.dataset.k){ const r=concept.ortRegels[+t.dataset.i]; r[t.dataset.k]= t.dataset.k==="omschrijving"?t.value:parseNL(t.value); ortSom(); } });
+$("#sf-ort").addEventListener("click",e=>{ const b=e.target.closest("[data-weg]"); if(b){ concept.ortRegels.splice(+b.dataset.weg,1); renderOrtRegels(); } });
+$("#sf-ort-plus").addEventListener("click",()=>{ concept.ortRegels.push({omschrijving:"ORT",pct:null,uren:null,bedrag:null}); renderOrtRegels(); });
+$("#sf-sluit").addEventListener("click",()=>{ $("#strook-form").hidden=true; concept=null; });
+$("#sf-opslaan").addEventListener("click",()=>{
+  const m=$("#sf-maand").value; if(!m){ toast("Kies de maand van de loonstrook"); return; }
+  const s={id:concept.id||uid(),maand:m,salaris:parseNL($("#sf-salaris").value),uurloon:parseNL($("#sf-uurloon").value),contracturen:parseNL($("#sf-contract").value),
+    vakantietoeslag:parseNL($("#sf-vt").value),eju:parseNL($("#sf-eju").value),bruto:parseNL($("#sf-bruto").value),netto:parseNL($("#sf-netto").value),
+    ortRegels:concept.ortRegels.filter(r=>r.bedrag!=null||r.uren!=null),bestand:concept.bestand,ruw:concept.ruw,demo:false};
+  const i=state.stroken.findIndex(x=>x.id===s.id); if(i>=0) state.stroken[i]=s; else state.stroken.push(s);
+  if(s.salaris && !state.inst.salaris) state.inst.salaris=s.salaris; if(s.contracturen && !state.inst.contracturen) state.inst.contracturen=s.contracturen;
+  state.ui.strookId=s.id; concept=null; $("#strook-form").hidden=true; bewaar(); toast("Loonstrook opgeslagen"); toonTab("controle");
+});
+async function verwerkBestand(f){
+  if(!f) return; const st=$("#pdf-status");
+  if(!/pdf$/i.test(f.name)&&f.type!=="application/pdf"){ st.textContent="Dit is geen PDF. Plak de tekst of vul het formulier zelf in."; return; }
+  st.textContent="Bezig met lezen van "+f.name+"…";
+  try{ const txt=await pdfNaarTekst(f); if(!txt.trim()){ st.textContent="Ik vond geen tekst in deze PDF (waarschijnlijk een scan of foto). Vul de bedragen zelf in."; toonForm({},"",f.name); return; }
+    const r=leesStrook(txt); st.textContent=`Gelezen: ${f.name}. Ik vond ${r.ortRegels.length} ORT-regel(s). Kijk alles even na.`; toonForm(r,txt,f.name);
+  }catch(err){ st.textContent="Het lezen van de PDF lukte niet ("+err.message+"). Plak de tekst of vul het formulier zelf in."; toonForm({},"",f.name); }
+}
+$("#pdf-input").addEventListener("change",e=>{ verwerkBestand(e.target.files[0]); e.target.value=""; });
+const drop=$("#drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.add("hover"); }));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove("hover"); }));
+drop.addEventListener("drop",e=>verwerkBestand(e.dataTransfer.files[0]));
+$("#plak-lees").addEventListener("click",()=>{ const t=$("#plak-tekst").value; if(!t.trim()){ toast("Plak eerst de tekst"); return; } toonForm(leesStrook(t),t,"geplakte tekst"); });
+$("#leeg-form").addEventListener("click",()=>toonForm({},"","handmatig"));
+let strookDel={id:null,t:0};
+function renderStroken(){
+  const l=state.stroken.slice().sort((a,b)=>b.maand.localeCompare(a.maand));
+  $("#stroken-lijst").innerHTML = l.length ? `<div class="tablewrap"><table><thead><tr><th>Maand</th><th class="r">Salaris</th><th class="r">ORT</th><th>Status</th><th></th></tr></thead><tbody>${l.map(s=>{ const c=controleer(s), fout=c.filter(x=>x.status==="bad").length, let_=c.filter(x=>x.status==="warn").length;
+      const ort=r2(s.ortRegels.reduce((a,r)=>a+(r.bedrag||0),0));
+      return `<tr><td><b>${maandNaam(s.maand)}</b>${s.demo?' <span class="muted small">voorbeeld</span>':""}<div class="small muted">${esc(s.bestand)}</div></td><td class="r num">${euro(s.salaris)}</td><td class="r num">${euro(ort)}</td><td>${fout?pill("bad")+" "+fout:let_?pill("warn")+" "+let_:pill("ok")}</td><td><div class="row" style="justify-content:flex-end;gap:2px"><button class="btn ghost" data-bekijk="${s.id}">Bekijk</button><button class="btn ghost" data-wijzig="${s.id}">Wijzig</button><button class="btn ghost danger" data-sdel="${s.id}">Verwijder</button></div></td></tr>`; }).join("")}</tbody></table></div>`
+    : `<p class="muted">Nog geen loonstroken. Upload hierboven je eerste PDF.</p>`;
+}
+$("#stroken-lijst").addEventListener("click",e=>{
+  const b=e.target.closest("[data-bekijk]"), w=e.target.closest("[data-wijzig]"), d=e.target.closest("[data-sdel]");
+  if(b){ state.ui.strookId=b.dataset.bekijk; toonTab("controle"); }
+  if(w){ toonForm(state.stroken.find(x=>x.id===w.dataset.wijzig)); }
+  if(d){ const id=d.dataset.sdel; if(strookDel.id===id&&Date.now()-strookDel.t<3000){ state.stroken=state.stroken.filter(x=>x.id!==id); bewaar(); renderStroken(); toast("Loonstrook verwijderd"); } else { strookDel={id,t:Date.now()}; d.textContent="Zeker?"; } }
+});
+
+// ---------- CONTROLE ----------
+function vulSelect(sel){
+  const l=state.stroken.slice().sort((a,b)=>b.maand.localeCompare(a.maand));
+  if(!l.find(s=>s.id===state.ui.strookId)) state.ui.strookId=l[0]?.id;
+  sel.innerHTML=l.map(s=>`<option value="${s.id}" ${s.id===state.ui.strookId?"selected":""}>${maandNaam(s.maand)}${s.demo?" (voorbeeld)":""}</option>`).join("");
+  sel.disabled=!l.length; return state.stroken.find(s=>s.id===state.ui.strookId);
+}
+$("#c-strook").addEventListener("change",e=>{ state.ui.strookId=e.target.value; bewaar(); renderControle(); });
+$("#u-strook").addEventListener("change",e=>{ state.ui.strookId=e.target.value; bewaar(); renderUitleg(); });
+function renderControle(){
+  const st=vulSelect($("#c-strook"));
+  if(!st){ $("#c-samenvatting").innerHTML=`<p class="muted">Nog geen loonstrook om te controleren. Ga naar <b>Loonstroken</b> en upload er een.</p>`; $("#c-checks").innerHTML=""; $("#c-ort-detail").hidden=true; return; }
+  const c=controleer(st), fout=c.filter(x=>x.status==="bad"), let_=c.filter(x=>x.status==="warn");
+  $("#c-samenvatting").innerHTML = `<div class="banner ${fout.length?"warn":"info"}"><span>${fout.length?`<b>${fout.length} fout${fout.length>1?"en":""}</b> gevonden op je loonstrook van ${maandNaam(st.maand)}.`:let_.length?`Geen fouten, wel <b>${let_.length}</b> punt${let_.length>1?"en":""} om na te kijken.`:`Alles wat ik kon controleren klopt.`}</span><button class="btn" data-uitleg="1">Leg het me uit</button></div>`;
+  $("#c-checks").innerHTML = c.map(x=>`<div class="check">${pill(x.status)}<div class="body"><b>${esc(x.titel)}</b><span>${esc(x.kort)}</span></div></div>`).join("");
+  const o=c.find(x=>x.id==="ort"), det=$("#c-ort-detail");
+  if(o&&o.verwacht){
+    det.hidden=false;
+    det.innerHTML=`<div class="spread"><h2>ORT-berekening</h2><span class="small muted">uren van ${maandNaam(o.bron)} · ORT-uurloon ${euro(o.ul.ort)}${o.ul.gemaximeerd?" (maximum)":""}</span></div>
+      <div class="tablewrap"><table><thead><tr><th>Tijdvak</th><th class="r">%</th><th class="r">Uren</th><th class="r">Per uur</th><th class="r">Bedrag</th></tr></thead><tbody>
+      ${o.verwacht.regels.map(r=>`<tr><td><span class="sw ${kleur(r.pct)}"></span>${esc(r.label)}</td><td class="r num">${r.pct}%</td><td class="r num">${getal(r.uren)}</td><td class="r num">${euro(o.ul.ort*r.pct/100)}</td><td class="r num">${euro(r.bedrag)}</td></tr>`).join("")}
+      <tr><td colspan="4"><b>Verwacht totaal</b></td><td class="r num"><b>${euro(o.verwacht.totaal)}</b></td></tr>
+      <tr><td colspan="4">Op je loonstrook</td><td class="r num">${euro(o.strookOrt)}</td></tr>
+      <tr><td colspan="4"><b>Verschil</b></td><td class="r num"><b>${euro(o.verschil)}</b></td></tr></tbody></table></div>
+      ${o.urenVerschil&&o.urenVerschil.length?`<p class="small"><b>Uren per percentage wijken af:</b> ${o.urenVerschil.map(u=>`${u.pct}%: ik tel ${getal(u.mijn)} u, loonstrook ${getal(u.strook)} u`).join(" · ")}</p>`:""}`;
+  } else det.hidden=true;
+}
+document.addEventListener("click",e=>{ if(e.target.closest("[data-uitleg]")) toonTab("uitleg"); });
+
+// ---------- UITLEG (Jip-en-Janneketaal) ----------
+function stap(n,html){ return `<div class="stap"><span class="n">${n}</span><div>${html}</div></div>`; }
+function verhaalOrt(x){
+  if(!x.verwacht) return `<h3>De ORT</h3><p>${esc(x.kort)}</p><p>Zet je diensten van ${maandNaam(x.bron)} in de <b>Prikklok</b> (of voeg ze handmatig toe). Dan kan ik het narekenen.</p>`;
+  const per=x.verwacht.regels.map(r=>{ const perUur=x.ul.ort*r.pct/100; return `${getal(r.uren).padStart(6)} u × ${euro(perUur).padStart(8)} = ${euro(r.bedrag).padStart(10)}   (${r.label}, ${r.pct}%)`; }).join("\n");
+  let s=`<h3>De ORT: geld extra voor lastige werktijden</h3>`;
+  s+=stap(1,`<p><b>Wat is het?</b> Werk je als anderen vrij zijn, dus 's avonds, 's nachts, in het weekend of op een feestdag? Dan krijg je extra geld bovenop je gewone loon. Dat heet <b>ORT</b>: toeslag voor onregelmatige uren.</p>`);
+  s+=stap(2,`<p><b>Welke maand?</b> Op de loonstrook van <b>${maandNaam(huidigeStrook().maand)}</b> staat de ORT van <b>${maandNaam(x.bron)}</b>. ${state.inst.ortLater?"Dat is altijd een maand later, omdat de salarisadministratie eerst moet weten wanneer je precies gewerkt hebt.":""}</p>`);
+  s+=stap(3,`<p><b>Hoeveel krijg je per uur?</b> Je uurloon voor de ORT is <b>${euro(x.ul.ort)}</b>${x.ul.gemaximeerd?` (je echte uurloon is ${euro(x.ul.basis)}, maar de CAO zegt dat de ORT over maximaal ${euro(x.ul.ort)} gaat)`:""}. Van dat bedrag krijg je een stukje extra. Hoe groot dat stukje is, hangt af van het tijdstip: 's avonds een klein stukje, 's nachts een groter stukje, op zondag het grootste stukje.</p>`);
+  s+=stap(4,`<p><b>Wat heb ik geteld?</b> Ik heb al je diensten van ${maandNaam(x.bron)} minuut voor minuut bekeken. Je pauze tel ik niet mee, want dan werk je niet. Dit kwam eruit:</p><div class="som">${esc(per)}\n${"-".repeat(44)}\n${" ".repeat(13)}Samen:     ${euro(x.verwacht.totaal).padStart(10)}</div>`);
+  s+=stap(5,`<p><b>Wat staat er op je loonstrook?</b> ${euro(x.strookOrt)}.</p>`);
+  if(x.status==="ok") s+=stap(6,`<p><b>Klopt het?</b> Ja. Het verschil is ${euro(Math.abs(x.verschil))}. Dat is zo klein dat het door afronden komt.</p>`);
+  else {
+    const oorzaken=[];
+    if(x.urenVerschil&&x.urenVerschil.length) x.urenVerschil.forEach(u=>oorzaken.push(`Bij <b>${u.pct}%</b> tel ik <b>${getal(u.mijn)} uur</b>, maar op je loonstrook staan <b>${getal(u.strook)} uur</b>. ${u.mijn>u.strook?`Er missen dus ${getal(u.mijn-u.strook)} uur. Kijk welke dienst met ${u.pct}% er niet op staat.`:`Er staan ${getal(u.strook-u.mijn)} uur meer op. Misschien heb je een dienst niet ingeprikt.`}`));
+    if(x.status==="bad"){ oorzaken.push("Een dienst staat niet (of anders) in het rooster bij de salarisadministratie. Bijvoorbeeld een ruil of invalbeurt die niet is doorgegeven.","Uren zijn te laat goedgekeurd. Dan komen ze vaak een maand later alsnog. Kijk volgende maand of het er dan bij staat.","Een feestdag is niet als feestdag gerekend."); }
+    else { oorzaken.push("Er zitten uren bij die ik niet ken. Bijvoorbeeld een dienst die je vergeten bent in te prikken.","Er is een correctie van een eerdere maand meegenomen.","Je ORT-tabel in Instellingen wijkt af van wat je werkgever gebruikt."); }
+    s+=stap(6,`<p><b>Klopt het?</b> Nee. ${x.status==="bad"?`Je krijgt <b>${euro(-x.verschil)} te weinig</b>.`:`Je krijgt <b>${euro(x.verschil)} meer</b> dan ik verwacht. Dat is fijn, maar het kan later teruggevraagd worden.`}</p><p><b>Hoe kan dat?</b></p><ul>${oorzaken.map(o=>`<li>${o}</li>`).join("")}</ul>`);
+  }
+  return s;
+}
+function huidigeStrook(){ return state.stroken.find(s=>s.id===state.ui.strookId); }
+function verhaalAnder(x){
+  if(x.id==="uurloon") return `<h3>Je uurloon</h3><p>Je krijgt elke maand hetzelfde salaris, ook als een maand langer of korter is. Om te weten wat één uur waard is, doet de salarisadministratie dit:</p>
+    ${x.berekend?`<div class="som">${esc(`Maandsalaris      ${euro(x.sal)}\n× 3 / 13          (zo reken je een maand om naar een week)\n= weekloon        ${euro(x.sal*3/13)}\n÷ ${getal(x.cu,1)} uur per week\n= uurloon         ${euro(x.berekend)}`)}</div>`:""}
+    <p>${esc(x.kort)}${x.status==="warn"?" Een klein verschil kan komen doordat je werkgever anders afrondt. Is het meer dan een paar cent? Vraag dan na met welke uren ze rekenen.":""}</p>`;
+  if(x.id==="salaris") return `<h3>Je salaris</h3><p>In de CAO staat een tabel met salarissen. Jouw functie hoort bij een <b>schaal</b>, en elk jaar ga je meestal een <b>trede</b> omhoog. Het bedrag in de tabel is voor 36 uur per week. Werk je minder, dan krijg je een deel daarvan.</p>
+    <div class="som">${esc(`CAO-salaris 36 uur   ${euro(state.inst.caoFulltime)}\n× ${getal(x.cu,1)} / 36\n= jouw salaris       ${euro(x.verwacht)}\nOp je loonstrook    ${euro(x.strook)}`)}</div><p>${esc(x.kort)}</p>`;
+  if(x.id==="uren") return `<h3>Je gewerkte uren</h3><p>Een maand heeft gemiddeld 52 ÷ 12 = 4,33 weken. Met jouw contract hoort daar gemiddeld <b>${getal(x.contractMaand)} uur</b> per maand bij. Je werkte <b>${getal(x.gewerkt)} uur</b>.</p><p>${x.verschil>0.5?"Je werkte meer dan je contract. Kijk of die uren worden uitbetaald of op je urensaldo (plusuren) komen. Dat hoort op je loonstrook of in je roosterprogramma te staan.":x.verschil<-0.5?"Je werkte minder dan je contract. Dat kan prima, bijvoorbeeld door vakantie of verlof. Let op dat je niet ongemerkt minuren opbouwt.":"Dat past precies bij je contract."}</p>`;
+  if(x.id==="vt") return `<h3>Vakantietoeslag</h3><p>Elk jaar in mei krijg je extra geld voor je vakantie: <b>8%</b> van wat je het afgelopen jaar verdiende (juni tot en met mei).</p><div class="som">${esc(`${euro(x.sal)} × 12 maanden × 8% ≈ ${euro(x.verwacht)}`)}</div><p>${esc(x.kort)} Dit is een schatting: als je salaris dit jaar veranderde, wijkt het bedrag af.</p>`;
+  if(x.id==="eju") return `<h3>Eindejaarsuitkering</h3><p>In december krijg je een extra bedrag: <b>8,33%</b> van je salaris over het hele jaar. Dat is ongeveer een extra maandsalaris.</p><div class="som">${esc(`${euro(x.sal)} × 12 maanden × 8,33% ≈ ${euro(x.verwacht)}`)}</div><p>${esc(x.kort)} Dit is een schatting: werkte je niet het hele jaar of veranderde je salaris, dan wijkt het af.</p>`;
+  return "";
+}
+function renderUitleg(){
+  const st=vulSelect($("#u-strook"));
+  if(!st){ $("#u-verhaal").innerHTML=`<p class="muted">Voeg eerst een loonstrook toe. Dan leg ik hier stap voor stap uit wat erop staat en of het klopt.</p>`; $("#u-mail-wrap").hidden=true; }
+  else {
+    const c=controleer(st), o=c.find(x=>x.id==="ort");
+    $("#u-verhaal").innerHTML=`<p>Dit is je loonstrook van <b>${maandNaam(st.maand)}</b>. Ik loop hem samen met je door, stukje voor stukje.</p>`+verhaalOrt(o)+c.filter(x=>x.id!=="ort").map(verhaalAnder).join("");
+    const fout=c.filter(x=>x.status==="bad");
+    $("#u-mail-wrap").hidden=!fout.length;
+    if(fout.length){ $("#u-mail").value=`Beste salarisadministratie,\n\nIk heb mijn loonstrook van ${maandNaam(st.maand)} nagekeken en ik denk dat er iets niet klopt:\n\n${fout.map(f=>"- "+f.titel+": "+f.kort).join("\n")}\n${o&&o.verwacht&&o.status==="bad"?`\nMijn berekening van de ORT over ${maandNaam(o.bron)} (ORT-uurloon ${euro(o.ul.ort)}):\n${o.verwacht.regels.map(r=>`  ${r.label}: ${getal(r.uren)} uur x ${r.pct}% = ${euro(r.bedrag)}`).join("\n")}\n  Totaal: ${euro(o.verwacht.totaal)}\n`:""}\nWillen jullie dit nakijken? Als ik iets over het hoofd zie, hoor ik graag waar het verschil door komt.\n\nMet vriendelijke groet,\n`; }
+  }
+  $("#u-algemeen").innerHTML=`<h2>Hoe werkt het eigenlijk?</h2>
+  <h3>Bruto en netto</h3><p><b>Bruto</b> is alles wat je verdient, voordat er iets af gaat. <b>Netto</b> is wat er echt op je rekening komt. Daartussen gaan belasting (loonheffing) en je pensioenpremie eraf. Deze app controleert de bruto bedragen. Belasting reken ik niet na, want dat hangt af van tabellen van de Belastingdienst en van je heffingskorting.</p>
+  <h3>Waarom krijg je ORT?</h3><p>Werken als anderen slapen of vrij zijn is zwaarder voor je lijf en je leven thuis. Daarom spreekt de CAO af dat je daarvoor extra krijgt. Hoe lastiger het tijdstip, hoe hoger het percentage.</p>
+  <h3>Welk tijdstip hoort bij welk percentage?</h3><p>Dat staat in de CAO. In deze app staat het in de ORT-tabel bij Instellingen. Zo ziet een dag eruit:</p>
+  <div style="display:grid;gap:8px">${ortStrips()}</div>
+  <h3>Waarom een maand later?</h3><p>Je salaris wordt vaak al rond de 20e van de maand gemaakt. De salarisadministratie weet dan nog niet welke avonden en nachten je de rest van de maand werkt. Daarom krijg je de ORT van oktober op je loonstrook van november.</p>
+  <h3>Pauze en nachtdiensten</h3><p>Pauze is geen werktijd, dus daar krijg je geen ORT over. Ik haal de pauze naar verhouding van alle tijdvakken in je dienst af. Een nachtdienst die over twee maanden gaat (bijvoorbeeld 31 oktober 23:00 tot 1 november 7:30) splits ik netjes: elk uur telt in de maand waarin je het werkte.</p>
+  <h3>Wat deze app niet weet</h3><ul><li>Bijzondere afspraken zoals slaapdiensten, bereikbaarheidsdiensten of een vaste ORT-vergoeding tijdens vakantie.</li><li>Of je werkgever pauze anders verrekent dan ik.</li><li>Diensten die je niet hebt ingeprikt.</li></ul><p class="small muted">Twijfel je? Kijk in de CAO-tekst of vraag het na bij de salarisadministratie of je vakbond.</p>`;
+}
+$("#u-mail-kopieer").addEventListener("click",()=>{ const t=$("#u-mail"); navigator.clipboard.writeText(t.value).then(()=>toast("Gekopieerd")).catch(()=>{ t.select(); toast("Selecteer en kopieer de tekst"); }); });
+function ortStrips(){
+  return ["wk","za","zo"].map(dt=>{ const t=state.inst.ortTabel[dt]; return `<div class="ortstrip"><span class="small"><b>${DAGTYPE_NAAM[dt]}</b></span><div class="bar">${t.map(b=>`<i class="${kleur(b.pct)}" style="width:${(b.tot-b.van)/24*100}%" title="${uurTxt(b.van)}–${uurTxt(b.tot)}: ${b.pct}%">${(b.tot-b.van)>=2?b.pct+"%":""}</i>`).join("")}</div><div class="ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div></div>`; }).join("");
+}
+
+// ---------- INSTELLINGEN ----------
+function renderInst(){
+  const I=state.inst; $("#i-contract").value=toInput(I.contracturen); $("#i-salaris").value=toInput(I.salaris); $("#i-cao").value=toInput(I.caoFulltime); $("#i-ortmax").value=toInput(I.ortMax); $("#i-tol").value=toInput(I.tolerantie); $("#i-later").checked=!!I.ortLater; $("#i-5mei").checked=!!I.vijfMei;
+  renderOrtEditor();
+}
+function renderOrtEditor(){
+  $("#ort-strips").innerHTML=ortStrips();
+  $("#ort-editor").innerHTML=["wk","za","zo"].map(dt=>`<div><h3>${DAGTYPE_NAAM[dt]}</h3><div class="tablewrap"><table><thead><tr><th>Van (uur)</th><th>Tot (uur)</th><th>ORT %</th><th></th></tr></thead><tbody>${state.inst.ortTabel[dt].map((b,i)=>`<tr><td><input id="ot-${dt}-${i}-van" data-dt="${dt}" data-i="${i}" data-k="van" inputmode="decimal" value="${toInput(b.van)}"></td><td><input id="ot-${dt}-${i}-tot" data-dt="${dt}" data-i="${i}" data-k="tot" inputmode="decimal" value="${toInput(b.tot)}"></td><td><input id="ot-${dt}-${i}-pct" data-dt="${dt}" data-i="${i}" data-k="pct" inputmode="decimal" value="${toInput(b.pct)}"></td><td><button class="btn ghost danger" data-otweg="${dt}|${i}" aria-label="Tijdvak verwijderen">×</button></td></tr>`).join("")}</tbody></table></div><button class="btn ghost" data-otplus="${dt}">+ tijdvak</button></div>`).join("");
+}
+$("#ort-editor").addEventListener("input",e=>{ const t=e.target; if(t.dataset.k){ const v=parseNL(t.value); if(v!=null) state.inst.ortTabel[t.dataset.dt][+t.dataset.i][t.dataset.k]=v; } });
+$("#ort-editor").addEventListener("click",e=>{ const w=e.target.closest("[data-otweg]"), p=e.target.closest("[data-otplus]");
+  if(w){ const [dt,i]=w.dataset.otweg.split("|"); state.inst.ortTabel[dt].splice(+i,1); renderOrtEditor(); }
+  if(p){ const t=state.inst.ortTabel[p.dataset.otplus]; t.push({van:t.length?t[t.length-1].tot:0,tot:24,pct:0}); renderOrtEditor(); } });
+$("#ort-opslaan").addEventListener("click",()=>{ ["wk","za","zo"].forEach(dt=>state.inst.ortTabel[dt].sort((a,b)=>a.van-b.van)); for(const k in fdCache) delete fdCache[k]; bewaar(); renderOrtEditor(); toast("ORT-tabel opgeslagen"); });
+$("#ort-reset").addEventListener("click",()=>{ state.inst.ortTabel=JSON.parse(JSON.stringify(STANDAARD_ORT)); bewaar(); renderOrtEditor(); toast("Standaardwaarden teruggezet"); });
+$("#i-opslaan").addEventListener("click",()=>{ const I=state.inst; I.contracturen=parseNL($("#i-contract").value); I.salaris=parseNL($("#i-salaris").value); I.caoFulltime=parseNL($("#i-cao").value); I.ortMax=parseNL($("#i-ortmax").value); I.tolerantie=parseNL($("#i-tol").value)??1; I.ortLater=$("#i-later").checked; I.vijfMei=$("#i-5mei").checked; for(const k in fdCache) delete fdCache[k]; bewaar(); toast("Instellingen opgeslagen"); });
+$("#d-export").addEventListener("click",()=>{ $("#d-tekst").value=JSON.stringify(state); toast("Back-up staat in het tekstvak"); });
+$("#d-kopieer").addEventListener("click",()=>{ const t=$("#d-tekst"); if(!t.value) t.value=JSON.stringify(state); navigator.clipboard.writeText(t.value).then(()=>toast("Back-up gekopieerd")).catch(()=>{ t.select(); toast("Selecteer en kopieer de tekst"); }); });
+function zetTerug(txt){ try{ const s=JSON.parse(txt); if(!s||!Array.isArray(s.diensten)||!Array.isArray(s.stroken)) throw new Error(); state=s; state.inst=Object.assign(JSON.parse(JSON.stringify(STANDAARD_INST)),s.inst||{}); state.ui=s.ui||{tab:"inst"}; bewaar(); renderInst(); toast("Back-up teruggezet"); }catch(e){ toast("Dit is geen geldige back-up"); } }
+$("#d-import").addEventListener("click",()=>zetTerug($("#d-tekst").value));
+$("#d-file").addEventListener("change",async e=>{ const f=e.target.files[0]; if(f) zetTerug(await f.text()); e.target.value=""; });
+$("#d-demo").addEventListener("click",wisDemo);
+let wisKlik=0;
+$("#d-wis").addEventListener("click",e=>{ if(Date.now()-wisKlik<3000){ state={inst:JSON.parse(JSON.stringify(STANDAARD_INST)),diensten:[],stroken:[],lopend:null,ui:{tab:"inst"}}; bewaar(); renderInst(); e.target.textContent="Alles wissen"; toast("Alles gewist"); } else { wisKlik=Date.now(); e.target.textContent="Zeker weten? Klik nog eens"; } });
+
+// ---------- start ----------
+renderBanners();
+toonTab(state.ui.tab||"klok");
+window.__lsc = {rekenDienst, analyse, controleer, leesStrook, get state(){return state;}};
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>
